@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cities for Families</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #dc2626;
+        }
+
+        .stat-card .number.positive {
+            color: #16a34a;
+        }
+
+        .stat-card .label {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+
+        .map-section {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .map-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .map-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .toggle-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn:hover {
+            border-color: #2d5a87;
+        }
+
+        .toggle-btn.active {
+            background: #2d5a87;
+            border-color: #2d5a87;
+            color: white;
+        }
+
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+
+        .legend {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 0.75rem;
+        }
+
+        .legend h4 {
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .legend-scale {
+            display: flex;
+            height: 12px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.25rem;
+        }
+
+        .legend-labels {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .info-panel {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-width: 250px;
+        }
+
+        .info-panel h4 {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-panel .county-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .info-panel .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.375rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .info-panel .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-panel .stat-label {
+            color: #64748b;
+        }
+
+        .info-panel .stat-value {
+            font-weight: 600;
+        }
+
+        .info-panel .stat-value.negative {
+            color: #dc2626;
+        }
+
+        .info-panel .stat-value.positive {
+            color: #16a34a;
+        }
+
+        .methodology {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .methodology h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .methodology h3 {
+            font-size: 1.125rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #334155;
+        }
+
+        .methodology p, .methodology ul {
+            color: #475569;
+            line-height: 1.7;
+            margin-bottom: 1rem;
+        }
+
+        .methodology ul {
+            padding-left: 1.5rem;
+        }
+
+        .methodology li {
+            margin-bottom: 0.5rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        footer a {
+            color: #2d5a87;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.75rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            #map {
+                height: 450px;
+            }
+
+            .map-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Cities for Families</h1>
+        <p>Tracking the steep decline in young children in America's major cities and exploring what we can do about it</p>
+    </header>
+
+    <div class="container">
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="number">-629,894</div>
+                <div class="label">Decline in under-5 population in major counties</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">-5.0%</div>
+                <div class="label">Percentage decline (Apr 2020 - Jul 2024)</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">-80,078</div>
+                <div class="label">Los Angeles County alone</div>
+            </div>
+            <div class="stat-card">
+                <div class="number positive">69</div>
+                <div class="label">Major counties that gained under-5 population</div>
+            </div>
+        </div>
+
+        <div class="map-section">
+            <div class="map-header">
+                <h2>Change in Under-5 Population by County (April 2020 - July 2024)</h2>
+                <div class="controls">
+                    <button class="toggle-btn active" data-mode="absolute">Absolute Change</button>
+                    <button class="toggle-btn" data-mode="percent">Percent Change</button>
+                </div>
+            </div>
+            <div id="map"></div>
+        </div>
+
+        <div class="methodology">
+            <h2>About This Data</h2>
+            <p>This map visualizes changes in the under-5 population (children ages 0-4) in major U.S. counties between April 2020 and July 2024. The data reveals a significant decline in young children across most large urban areas.</p>
+
+            <h3>Definition of "Major Cities"</h3>
+            <p>For this analysis, we define major cities as <strong>counties with a total population of 250,000 or more</strong> as of April 2020. This threshold captures the primary counties of major metropolitan areas (279 counties total) while excluding smaller rural areas where demographic patterns differ significantly.</p>
+
+            <h3>Key Findings</h3>
+            <ul>
+                <li><strong>Large coastal cities hit hardest:</strong> New York City boroughs, Los Angeles, San Francisco, and other expensive coastal metros saw the steepest declines</li>
+                <li><strong>NYC & LA dominate losses:</strong> New York County (Manhattan) lost 18.9% of its under-5 population; Los Angeles County lost over 80,000 young children</li>
+                <li><strong>Sun Belt gaining:</strong> Texas and Florida counties, especially in suburban/exurban areas, saw significant gains</li>
+                <li><strong>Cost of living connection:</strong> Many of the counties with the largest percentage declines are also among the most expensive places to live</li>
+            </ul>
+
+            <h3>Data Source</h3>
+            <p>U.S. Census Bureau, Population Division. County Population Estimates by Age and Sex: April 1, 2020 to July 1, 2024 (CC-EST2024-AGESEX). Released June 2025.</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>Data: U.S. Census Bureau | Built with care for American families</p>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize map
+        const map = L.map('map', {
+            center: [39.8283, -98.5795],
+            zoom: 4,
+            minZoom: 3,
+            maxZoom: 10
+        });
+
+        // Add base tile layer
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(map);
+
+        let geojsonLayer;
+        let countyData = {};
+        let currentMode = 'absolute';
+
+        // Color scales
+        function getAbsoluteColor(value) {
+            if (value === null || value === undefined) return '#f0f0f0';
+            if (value > 5000) return '#166534';
+            if (value > 2000) return '#22c55e';
+            if (value > 500) return '#86efac';
+            if (value > 0) return '#dcfce7';
+            if (value > -500) return '#fee2e2';
+            if (value > -2000) return '#fca5a5';
+            if (value > -5000) return '#f87171';
+            if (value > -15000) return '#dc2626';
+            if (value > -30000) return '#b91c1c';
+            return '#7f1d1d';
+        }
+
+        function getPercentColor(value) {
+            if (value === null || value === undefined) return '#f0f0f0';
+            if (value > 15) return '#166534';
+            if (value > 10) return '#22c55e';
+            if (value > 5) return '#86efac';
+            if (value > 0) return '#dcfce7';
+            if (value > -5) return '#fee2e2';
+            if (value > -10) return '#fca5a5';
+            if (value > -15) return '#f87171';
+            if (value > -20) return '#dc2626';
+            return '#7f1d1d';
+        }
+
+        function getColor(fips) {
+            const data = countyData[fips];
+            if (!data) return '#f0f0f0';
+
+            if (currentMode === 'absolute') {
+                return getAbsoluteColor(data.under5_absolute_change);
+            } else {
+                return getPercentColor(data.under5_pct_change);
+            }
+        }
+
+        function style(feature) {
+            return {
+                fillColor: getColor(feature.id),
+                weight: 0.5,
+                opacity: 1,
+                color: '#94a3b8',
+                fillOpacity: 0.8
+            };
+        }
+
+        function formatNumber(num) {
+            if (num === null || num === undefined) return 'N/A';
+            return num.toLocaleString();
+        }
+
+        function highlightFeature(e) {
+            const layer = e.target;
+            const fips = layer.feature.id;
+            const data = countyData[fips];
+
+            layer.setStyle({
+                weight: 2,
+                color: '#1e293b',
+                fillOpacity: 0.9
+            });
+
+            layer.bringToFront();
+            updateInfoPanel(data, fips);
+        }
+
+        function resetHighlight(e) {
+            geojsonLayer.resetStyle(e.target);
+        }
+
+        function onEachFeature(feature, layer) {
+            layer.on({
+                mouseover: highlightFeature,
+                mouseout: resetHighlight
+            });
+        }
+
+        // Info panel control
+        const info = L.control({ position: 'topright' });
+
+        info.onAdd = function(map) {
+            this._div = L.DomUtil.create('div', 'info-panel');
+            this.update();
+            return this._div;
+        };
+
+        info.update = function(data, fips) {
+            if (!data) {
+                this._div.innerHTML = '<h4>Hover over a county</h4><p style="color: #94a3b8;">Major counties (pop. 250k+) are colored</p>';
+                return;
+            }
+
+            const absChange = data.under5_absolute_change;
+            const pctChange = data.under5_pct_change;
+            const absClass = absChange >= 0 ? 'positive' : 'negative';
+            const pctClass = pctChange >= 0 ? 'positive' : 'negative';
+            const absSign = absChange >= 0 ? '+' : '';
+            const pctSign = pctChange >= 0 ? '+' : '';
+
+            this._div.innerHTML = `
+                <h4>County Details</h4>
+                <div class="county-name">${data.county}, ${data.state}</div>
+                <div class="stat-row">
+                    <span class="stat-label">Under-5 (2020)</span>
+                    <span class="stat-value">${formatNumber(data.under5_2020)}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Under-5 (2024)</span>
+                    <span class="stat-value">${formatNumber(data.under5_2024)}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Absolute Change</span>
+                    <span class="stat-value ${absClass}">${absSign}${formatNumber(absChange)}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Percent Change</span>
+                    <span class="stat-value ${pctClass}">${pctSign}${pctChange}%</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Total Pop (2024)</span>
+                    <span class="stat-value">${formatNumber(data.pop_2024)}</span>
+                </div>
+            `;
+        };
+
+        function updateInfoPanel(data, fips) {
+            info.update(data, fips);
+        }
+
+        info.addTo(map);
+
+        // Legend control
+        const legend = L.control({ position: 'bottomright' });
+
+        legend.onAdd = function(map) {
+            this._div = L.DomUtil.create('div', 'legend');
+            this.update();
+            return this._div;
+        };
+
+        legend.update = function() {
+            if (currentMode === 'absolute') {
+                this._div.innerHTML = `
+                    <h4>Change in Under-5 Population</h4>
+                    <div class="legend-scale">
+                        <div style="flex:1;background:#7f1d1d"></div>
+                        <div style="flex:1;background:#b91c1c"></div>
+                        <div style="flex:1;background:#dc2626"></div>
+                        <div style="flex:1;background:#f87171"></div>
+                        <div style="flex:1;background:#fca5a5"></div>
+                        <div style="flex:1;background:#fee2e2"></div>
+                        <div style="flex:1;background:#dcfce7"></div>
+                        <div style="flex:1;background:#86efac"></div>
+                        <div style="flex:1;background:#22c55e"></div>
+                        <div style="flex:1;background:#166534"></div>
+                    </div>
+                    <div class="legend-labels">
+                        <span>&lt;-30k</span>
+                        <span>0</span>
+                        <span>&gt;+5k</span>
+                    </div>
+                `;
+            } else {
+                this._div.innerHTML = `
+                    <h4>Percent Change in Under-5 Pop.</h4>
+                    <div class="legend-scale">
+                        <div style="flex:1;background:#7f1d1d"></div>
+                        <div style="flex:1;background:#dc2626"></div>
+                        <div style="flex:1;background:#f87171"></div>
+                        <div style="flex:1;background:#fca5a5"></div>
+                        <div style="flex:1;background:#fee2e2"></div>
+                        <div style="flex:1;background:#dcfce7"></div>
+                        <div style="flex:1;background:#86efac"></div>
+                        <div style="flex:1;background:#22c55e"></div>
+                        <div style="flex:1;background:#166534"></div>
+                    </div>
+                    <div class="legend-labels">
+                        <span>&lt;-20%</span>
+                        <span>0%</span>
+                        <span>&gt;+15%</span>
+                    </div>
+                `;
+            }
+        };
+
+        legend.addTo(map);
+
+        // Toggle buttons
+        document.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentMode = this.dataset.mode;
+                if (geojsonLayer) {
+                    geojsonLayer.setStyle(style);
+                }
+                legend.update();
+            });
+        });
+
+        // Load data
+        Promise.all([
+            fetch('data/counties.geojson').then(r => r.json()),
+            fetch('data/county_changes.json').then(r => r.json())
+        ]).then(([geojson, changes]) => {
+            // Index county data by FIPS
+            changes.forEach(c => {
+                countyData[c.FIPS] = c;
+            });
+
+            // Add GeoJSON layer
+            geojsonLayer = L.geoJSON(geojson, {
+                style: style,
+                onEachFeature: onEachFeature
+            }).addTo(map);
+        });
+    </script>
+</body>
+</html>
