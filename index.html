@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cities for Families</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -195,22 +194,111 @@
             color: white;
         }
 
-        #map {
-            height: 600px;
+        #map-container {
+            position: relative;
             width: 100%;
+            background: #f8fafc;
+        }
+
+        #map {
+            width: 100%;
+            display: block;
+        }
+
+        .county {
+            stroke: #94a3b8;
+            stroke-width: 0.5;
+            transition: opacity 0.2s;
+        }
+
+        .county.major {
+            stroke: #475569;
+            stroke-width: 1;
+            cursor: pointer;
+        }
+
+        .county.major:hover {
+            stroke: #1e293b;
+            stroke-width: 2;
+        }
+
+        .state-border {
+            fill: none;
+            stroke: #64748b;
+            stroke-width: 1;
+            pointer-events: none;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            min-width: 250px;
+            z-index: 100;
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+        }
+
+        .tooltip h4 {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .tooltip .county-name {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #1e293b;
+        }
+
+        .tooltip .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+            font-size: 0.875rem;
+        }
+
+        .tooltip .stat-label {
+            color: #64748b;
+        }
+
+        .tooltip .stat-value {
+            font-weight: 600;
+        }
+
+        .tooltip .stat-value.negative {
+            color: #dc2626;
+        }
+
+        .tooltip .stat-value.positive {
+            color: #16a34a;
         }
 
         .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
             background: white;
             padding: 1rem;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             font-size: 0.75rem;
         }
 
         .legend h4 {
             margin-bottom: 0.5rem;
-            font-size: 0.875rem;
+            font-size: 0.8rem;
+            font-weight: 600;
         }
 
         .legend-scale {
@@ -219,58 +307,20 @@
             border-radius: 4px;
             overflow: hidden;
             margin-bottom: 0.25rem;
+            width: 180px;
         }
 
         .legend-labels {
             display: flex;
             justify-content: space-between;
+            width: 180px;
         }
 
-        .info-panel {
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            min-width: 280px;
-        }
-
-        .info-panel h4 {
-            font-size: 0.875rem;
+        .legend-note {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
             color: #64748b;
-            margin-bottom: 0.5rem;
-        }
-
-        .info-panel .county-name {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-        }
-
-        .info-panel .stat-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.375rem 0;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .info-panel .stat-row:last-child {
-            border-bottom: none;
-        }
-
-        .info-panel .stat-label {
-            color: #64748b;
-        }
-
-        .info-panel .stat-value {
-            font-weight: 600;
-        }
-
-        .info-panel .stat-value.negative {
-            color: #dc2626;
-        }
-
-        .info-panel .stat-value.positive {
-            color: #16a34a;
         }
 
         .methodology {
@@ -326,10 +376,6 @@
             font-size: 0.875rem;
         }
 
-        footer a {
-            color: #2d5a87;
-        }
-
         @media (max-width: 768px) {
             header h1 {
                 font-size: 1.75rem;
@@ -339,13 +385,16 @@
                 padding: 1rem;
             }
 
-            #map {
-                height: 450px;
-            }
-
             .map-header-top {
                 flex-direction: column;
                 align-items: flex-start;
+            }
+
+            .legend {
+                position: relative;
+                bottom: auto;
+                right: auto;
+                margin: 1rem;
             }
         }
     </style>
@@ -367,15 +416,15 @@
                     <div class="detail">From 19.4M to 18.6M children (Apr 2020 - Jul 2024)</div>
                 </div>
                 <div class="comparison-box major">
-                    <h3>Major Counties Only (pop. 250k+)</h3>
-                    <div class="big-number">-629,894</div>
-                    <div class="subtitle">Decline in under-5 population (-5.0%)</div>
-                    <div class="detail">From 12.7M to 12.1M children (Apr 2020 - Jul 2024)</div>
+                    <h3>Major Counties Only (pop. 500k+)</h3>
+                    <div class="big-number">-556,839</div>
+                    <div class="subtitle">Decline in under-5 population (-5.6%)</div>
+                    <div class="detail">142 counties with population over 500,000</div>
                 </div>
             </div>
             <div class="highlight-stat">
-                <div class="number">78%</div>
-                <div class="label">of the nationwide decline in young children occurred in major counties, despite these counties having only 65% of the under-5 population</div>
+                <div class="number">69%</div>
+                <div class="label">of the nationwide decline in young children occurred in major counties (500k+ pop), despite these counties having only 54% of the under-5 population</div>
             </div>
         </div>
 
@@ -389,10 +438,14 @@
                     </div>
                 </div>
                 <div class="definition">
-                    <strong>Counties shown:</strong> Only the 279 counties with total population of at least 250,000 as of April 2020. This captures the primary counties of major U.S. metropolitan areas.
+                    <strong>Counties shown:</strong> Only the 142 counties with total population of at least 500,000 as of April 2020. This captures the core counties of America's largest metropolitan areas.
                 </div>
             </div>
-            <div id="map"></div>
+            <div id="map-container">
+                <svg id="map"></svg>
+                <div class="tooltip" id="tooltip"></div>
+                <div class="legend" id="legend"></div>
+            </div>
         </div>
 
         <div class="methodology">
@@ -400,7 +453,7 @@
             <p>This map visualizes changes in the under-5 population (children ages 0-4) in major U.S. counties between April 2020 and July 2024.</p>
 
             <div class="callout">
-                <strong>Why focus on counties with 250,000+ population?</strong> These 279 counties represent America's major metropolitan cores. While they contain 65% of the nation's young children, they account for 78% of the decline&mdash;indicating that large urban areas are disproportionately losing families with young children.
+                <strong>Why focus on counties with 500,000+ population?</strong> These 142 counties represent the core of America's largest metropolitan areas. While they contain about 54% of the nation's young children, they account for 69% of the decline&mdash;indicating that large urban centers are disproportionately losing families with young children.
             </div>
 
             <h3>Key Findings</h3>
@@ -420,30 +473,15 @@
         <p>Data: U.S. Census Bureau | Built with care for American families</p>
     </footer>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/topojson-client@3"></script>
+    <script src="data/county_data_embed.js"></script>
     <script>
-        // Initialize map
-        const map = L.map('map', {
-            center: [39.8283, -98.5795],
-            zoom: 4,
-            minZoom: 3,
-            maxZoom: 10
-        });
-
-        // Add base tile layer
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 20
-        }).addTo(map);
-
-        let geojsonLayer;
-        let countyData = {};
         let currentMode = 'absolute';
 
         // Color scales
         function getAbsoluteColor(value) {
-            if (value === null || value === undefined) return '#d1d5db';
+            if (value === null || value === undefined) return '#e5e7eb';
             if (value > 5000) return '#166534';
             if (value > 2000) return '#22c55e';
             if (value > 500) return '#86efac';
@@ -457,7 +495,7 @@
         }
 
         function getPercentColor(value) {
-            if (value === null || value === undefined) return '#d1d5db';
+            if (value === null || value === undefined) return '#e5e7eb';
             if (value > 15) return '#166534';
             if (value > 10) return '#22c55e';
             if (value > 5) return '#86efac';
@@ -471,26 +509,8 @@
 
         function getColor(fips) {
             const data = countyData[fips];
-            if (!data) return '#d1d5db';
-
-            if (currentMode === 'absolute') {
-                return getAbsoluteColor(data.under5_absolute_change);
-            } else {
-                return getPercentColor(data.under5_pct_change);
-            }
-        }
-
-        function style(feature) {
-            const fips = feature.id;
-            const hasMajorData = countyData[fips] !== undefined;
-
-            return {
-                fillColor: getColor(fips),
-                weight: hasMajorData ? 1 : 0.3,
-                opacity: 1,
-                color: hasMajorData ? '#475569' : '#d1d5db',
-                fillOpacity: hasMajorData ? 0.85 : 0.15
-            };
+            if (!data) return '#e5e7eb';
+            return currentMode === 'absolute' ? getAbsoluteColor(data.ac) : getPercentColor(data.pc);
         }
 
         function formatNumber(num) {
@@ -498,106 +518,10 @@
             return num.toLocaleString();
         }
 
-        function highlightFeature(e) {
-            const layer = e.target;
-            const fips = layer.feature.id;
-            const data = countyData[fips];
-
-            // Only highlight if it's a major county
-            if (!data) return;
-
-            layer.setStyle({
-                weight: 3,
-                color: '#1e293b',
-                fillOpacity: 0.95
-            });
-
-            layer.bringToFront();
-            updateInfoPanel(data, fips);
-        }
-
-        function resetHighlight(e) {
-            geojsonLayer.resetStyle(e.target);
-        }
-
-        function onEachFeature(feature, layer) {
-            layer.on({
-                mouseover: highlightFeature,
-                mouseout: resetHighlight
-            });
-        }
-
-        // Info panel control
-        const info = L.control({ position: 'topright' });
-
-        info.onAdd = function(map) {
-            this._div = L.DomUtil.create('div', 'info-panel');
-            this.update();
-            return this._div;
-        };
-
-        info.update = function(data, fips) {
-            if (!data) {
-                this._div.innerHTML = `
-                    <h4>Hover over a county</h4>
-                    <p style="color: #64748b; font-size: 0.8rem; margin-top: 0.5rem;">
-                        Colored counties have population 250,000+
-                    </p>
-                `;
-                return;
-            }
-
-            const absChange = data.under5_absolute_change;
-            const pctChange = data.under5_pct_change;
-            const absClass = absChange >= 0 ? 'positive' : 'negative';
-            const pctClass = pctChange >= 0 ? 'positive' : 'negative';
-            const absSign = absChange >= 0 ? '+' : '';
-            const pctSign = pctChange >= 0 ? '+' : '';
-
-            this._div.innerHTML = `
-                <h4>County Details</h4>
-                <div class="county-name">${data.county}, ${data.state}</div>
-                <div class="stat-row">
-                    <span class="stat-label">Total Pop. (2020)</span>
-                    <span class="stat-value">${formatNumber(data.pop_2020)}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Under-5 (2020)</span>
-                    <span class="stat-value">${formatNumber(data.under5_2020)}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Under-5 (2024)</span>
-                    <span class="stat-value">${formatNumber(data.under5_2024)}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Absolute Change</span>
-                    <span class="stat-value ${absClass}">${absSign}${formatNumber(absChange)}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Percent Change</span>
-                    <span class="stat-value ${pctClass}">${pctSign}${pctChange}%</span>
-                </div>
-            `;
-        };
-
-        function updateInfoPanel(data, fips) {
-            info.update(data, fips);
-        }
-
-        info.addTo(map);
-
-        // Legend control
-        const legend = L.control({ position: 'bottomright' });
-
-        legend.onAdd = function(map) {
-            this._div = L.DomUtil.create('div', 'legend');
-            this.update();
-            return this._div;
-        };
-
-        legend.update = function() {
+        function updateLegend() {
+            const legend = document.getElementById('legend');
             if (currentMode === 'absolute') {
-                this._div.innerHTML = `
+                legend.innerHTML = `
                     <h4>Change in Under-5 Population</h4>
                     <div class="legend-scale">
                         <div style="flex:1;background:#7f1d1d"></div>
@@ -616,13 +540,11 @@
                         <span>0</span>
                         <span>&gt;+5k</span>
                     </div>
-                    <div style="margin-top:8px;padding-top:8px;border-top:1px solid #e2e8f0;color:#64748b;">
-                        Gray = counties under 250k pop.
-                    </div>
+                    <div class="legend-note">Gray = counties under 500k pop.</div>
                 `;
             } else {
-                this._div.innerHTML = `
-                    <h4>Percent Change in Under-5 Pop.</h4>
+                legend.innerHTML = `
+                    <h4>Percent Change</h4>
                     <div class="legend-scale">
                         <div style="flex:1;background:#7f1d1d"></div>
                         <div style="flex:1;background:#dc2626"></div>
@@ -639,14 +561,117 @@
                         <span>0%</span>
                         <span>&gt;+15%</span>
                     </div>
-                    <div style="margin-top:8px;padding-top:8px;border-top:1px solid #e2e8f0;color:#64748b;">
-                        Gray = counties under 250k pop.
-                    </div>
+                    <div class="legend-note">Gray = counties under 500k pop.</div>
                 `;
             }
-        };
+        }
 
-        legend.addTo(map);
+        // Load US TopoJSON and render map
+        const width = 960;
+        const height = 600;
+
+        const svg = d3.select("#map")
+            .attr("viewBox", [0, 0, width, height])
+            .attr("preserveAspectRatio", "xMidYMid meet");
+
+        const tooltip = d3.select("#tooltip");
+
+        const projection = d3.geoAlbersUsa()
+            .scale(1280)
+            .translate([width / 2, height / 2]);
+
+        const path = d3.geoPath().projection(projection);
+
+        // Load US counties TopoJSON
+        d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json").then(us => {
+            const counties = topojson.feature(us, us.objects.counties);
+            const states = topojson.mesh(us, us.objects.states, (a, b) => a !== b);
+
+            // Draw counties
+            svg.append("g")
+                .selectAll("path")
+                .data(counties.features)
+                .join("path")
+                .attr("class", d => {
+                    const fips = d.id.toString().padStart(5, '0');
+                    return countyData[fips] ? "county major" : "county";
+                })
+                .attr("fill", d => {
+                    const fips = d.id.toString().padStart(5, '0');
+                    return getColor(fips);
+                })
+                .attr("d", path)
+                .on("mouseover", function(event, d) {
+                    const fips = d.id.toString().padStart(5, '0');
+                    const data = countyData[fips];
+                    if (!data) return;
+
+                    d3.select(this).raise();
+
+                    const absSign = data.ac >= 0 ? '+' : '';
+                    const pctSign = data.pc >= 0 ? '+' : '';
+                    const absClass = data.ac >= 0 ? 'positive' : 'negative';
+                    const pctClass = data.pc >= 0 ? 'positive' : 'negative';
+
+                    tooltip.html(`
+                        <h4>County Details</h4>
+                        <div class="county-name">${data.n}, ${data.s}</div>
+                        <div class="stat-row">
+                            <span class="stat-label">Total Pop. (2020)</span>
+                            <span class="stat-value">${formatNumber(data.p0)}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Under-5 (2020)</span>
+                            <span class="stat-value">${formatNumber(data.u0)}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Under-5 (2024)</span>
+                            <span class="stat-value">${formatNumber(data.u4)}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Absolute Change</span>
+                            <span class="stat-value ${absClass}">${absSign}${formatNumber(data.ac)}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Percent Change</span>
+                            <span class="stat-value ${pctClass}">${pctSign}${data.pc}%</span>
+                        </div>
+                    `);
+
+                    tooltip.classed("visible", true);
+                })
+                .on("mousemove", function(event) {
+                    const container = document.getElementById('map-container');
+                    const rect = container.getBoundingClientRect();
+                    let left = event.clientX - rect.left + 15;
+                    let top = event.clientY - rect.top + 15;
+
+                    // Keep tooltip in bounds
+                    const tooltipRect = tooltip.node().getBoundingClientRect();
+                    if (left + tooltipRect.width > rect.width) {
+                        left = event.clientX - rect.left - tooltipRect.width - 15;
+                    }
+                    if (top + tooltipRect.height > rect.height) {
+                        top = event.clientY - rect.top - tooltipRect.height - 15;
+                    }
+
+                    tooltip.style("left", left + "px").style("top", top + "px");
+                })
+                .on("mouseout", function() {
+                    tooltip.classed("visible", false);
+                });
+
+            // Draw state borders
+            svg.append("path")
+                .datum(states)
+                .attr("class", "state-border")
+                .attr("d", path);
+
+            // Store reference for updates
+            window.countyPaths = svg.selectAll(".county");
+
+            updateLegend();
+        });
 
         // Toggle buttons
         document.querySelectorAll('.toggle-btn').forEach(btn => {
@@ -654,33 +679,17 @@
                 document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 currentMode = this.dataset.mode;
-                if (geojsonLayer) {
-                    geojsonLayer.setStyle(style);
+
+                // Update colors
+                if (window.countyPaths) {
+                    window.countyPaths.attr("fill", d => {
+                        const fips = d.id.toString().padStart(5, '0');
+                        return getColor(fips);
+                    });
                 }
-                legend.update();
+
+                updateLegend();
             });
-        });
-
-        // Load data
-        Promise.all([
-            fetch('data/counties.geojson').then(r => r.json()),
-            fetch('data/county_changes.json').then(r => r.json())
-        ]).then(([geojson, changes]) => {
-            // Index county data by FIPS
-            changes.forEach(c => {
-                countyData[c.FIPS] = c;
-            });
-
-            console.log('Loaded', Object.keys(countyData).length, 'major counties');
-            console.log('Sample FIPS codes:', Object.keys(countyData).slice(0, 5));
-
-            // Add GeoJSON layer
-            geojsonLayer = L.geoJSON(geojson, {
-                style: style,
-                onEachFeature: onEachFeature
-            }).addTo(map);
-        }).catch(err => {
-            console.error('Error loading data:', err);
         });
     </script>
 </body>
