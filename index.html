@@ -105,9 +105,26 @@
             left: 0;
             right: 0;
             bottom: 0;
+            background-image: url('https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            filter: blur(2px) brightness(0.5) saturate(0.8);
+            transform: scale(1.03);
+            z-index: -2;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: radial-gradient(ellipse at 30% 20%, var(--accent-glow) 0%, transparent 50%),
-                        radial-gradient(ellipse at 70% 80%, rgba(38, 222, 129, 0.08) 0%, transparent 50%);
+                        radial-gradient(ellipse at 70% 80%, rgba(38, 222, 129, 0.05) 0%, transparent 50%),
+                        linear-gradient(to bottom, rgba(15, 20, 25, 0.4) 0%, var(--bg-dark) 95%);
             pointer-events: none;
+            z-index: -1;
         }
 
         .hero-content {
@@ -527,10 +544,13 @@
             border-radius: 16px;
             overflow: hidden;
             border: 1px solid rgba(255,255,255,0.05);
+            min-height: 400px;
         }
 
-        #map {
+        #county-map {
             width: 100%;
+            height: auto;
+            min-height: 400px;
             display: block;
         }
 
@@ -1115,7 +1135,7 @@
             <div class="hero-stat">
                 <div class="stat-item">
                     <div class="stat-number">-18.3%</div>
-                    <div class="stat-label">Fertility rate decline in large urban counties since 2011</div>
+                    <div class="stat-label">Birth rate decline in large urban counties since 2011</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-number">-484K</div>
@@ -1123,7 +1143,7 @@
                 </div>
                 <div class="stat-item">
                     <div class="stat-number">3.1x</div>
-                    <div class="stat-label">Urban fertility decline vs. rural areas</div>
+                    <div class="stat-label">Urban birth rate decline vs. rural areas</div>
                 </div>
             </div>
         </div>
@@ -1269,7 +1289,7 @@
             </div>
 
             <div class="map-container">
-                <svg id="map"></svg>
+                <svg id="county-map"></svg>
                 <div class="map-tooltip" id="tooltip"></div>
                 <div class="map-legend" id="legend"></div>
             </div>
@@ -1330,12 +1350,6 @@
                 </a>
             </div>
 
-            <div class="doom-loop-callout">
-                <blockquote>
-                    "I'm deeply worried about a family-exodus doom loop. When the population of young kids in a city falls 10 or 20 percent in just a few years, that's a potential political earthquake. Almost overnight, there are fewer parents around to fight for better schools, local playgrounds, or all the other mundane amenities families care about."
-                </blockquote>
-                <cite>&mdash; Connor O'Brien, Economic Innovation Group, in The Atlantic</cite>
-            </div>
         </div>
     </section>
 
@@ -1943,7 +1957,7 @@
         const width = 960;
         const height = 600;
 
-        const svg = d3.select("#map")
+        const svg = d3.select("#county-map")
             .attr("viewBox", [0, 0, width, height])
             .attr("preserveAspectRatio", "xMidYMid meet");
 
@@ -1955,7 +1969,11 @@
 
         const path = d3.geoPath().projection(projection);
 
+        console.log("Loading map data...");
+        console.log("countyData loaded:", typeof countyData !== 'undefined' ? Object.keys(countyData).length + " counties" : "NOT LOADED");
+
         d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json").then(us => {
+            console.log("TopoJSON loaded successfully");
             const counties = topojson.feature(us, us.objects.counties);
             const states = topojson.mesh(us, us.objects.states, (a, b) => a !== b);
 
@@ -2042,6 +2060,9 @@
             window.countyPaths = svg.selectAll(".county");
 
             updateLegend();
+            console.log("Map rendered successfully");
+        }).catch(err => {
+            console.error("Error loading map:", err);
         });
 
         // Toggle buttons
